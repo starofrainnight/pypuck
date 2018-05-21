@@ -2,12 +2,20 @@
 # This file will be regenerated if you run travis_pypi_setup.py
 
 language: python
-python:
-  - 3.5
-  - 3.4
+
+matrix:
+  include:
+    - python: 3.4
+      env: TOXENV=py34
+
+    - python: 3.5
+      env: TOXENV=py35
+
+    - python: 3.6
+      env: TOXENV=py36,mypy,flake8
 
 # command to install dependencies, e.g. pip install -r requirements.txt --use-mirrors
-install: pip install -U tox-travis
+install: python -m pip install -U tox
 
 # command to run tests, e.g. python setup.py test
 script: tox
@@ -23,4 +31,4 @@ deploy:
   on:
     tags: true
     repo: starofrainnight/pypuck
-    python: 3.4
+    python: 3.6
