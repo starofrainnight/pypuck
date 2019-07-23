@@ -10,3 +10,4 @@ PyYAML
 pytest
 pytest-runner
 click
+pre-commit
