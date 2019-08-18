@@ -7,7 +7,6 @@ import pytest
 
 from click.testing import CliRunner
 
-from pypuck import pypuck
 from pypuck.__main__ import main
 
 
