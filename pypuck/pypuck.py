@@ -269,4 +269,3 @@ call "%~dp0scripts/env.bat"
         self.pack(work_dir, dist_dir)
 
         click.echo("Done!")
-
