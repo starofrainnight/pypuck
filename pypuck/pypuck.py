@@ -119,7 +119,11 @@ class PyPuck(object):
                     shutil.rmtree(apath, ignore_errors=True)
 
     def download_winpython_core(self):
-        cache_dir = os.path.expanduser("~/.pypuck/cache")
+        # Fixed `~` will be expanded as local-dir/settings
+        cache_dir = "%s%s/.pypuck/cache" % (
+            os.environ["HOMEDRIVE"],
+            os.environ["HOMEPATH"],
+        )
         os.makedirs(cache_dir, exist_ok=True)
 
         if self.is_64bits_system():
@@ -181,6 +185,7 @@ class PyPuck(object):
     def create_script_entries(self, work_dir, scripts):
         scripts = list(scripts)
         script_content = """@echo off
+call "%~dp0scripts/env.bat"
 "%~dp0{}" %*
 """
 
@@ -232,12 +237,9 @@ class PyPuck(object):
 
         # Install the setup.py on local directory
         p = run(
-            [
-                "cmd",
-                "/C",
-                r"call %s\scripts\env.bat & python setup.py install"
-                % work_dir,
-            ]
+            'cmd /C call "%s\\scripts\\env.bat" & python setup.py install'
+            % work_dir,
+            shell=True,
         )
 
         click.echo("Setup result: %s" % p.returncode)
@@ -248,10 +250,18 @@ class PyPuck(object):
 
         self.tidy_winpython(work_dir)
 
-        scripts = set(after_scripts_snapshot) - set(before_scripts_snapshot)
+        click.echo("Ensure python movable...")
+
+        # Use echo to skip the "PAUSE" in that script!
+        run(
+            'cmd /C echo | call "%s\scripts\make_winpython_movable.bat"'
+            % work_dir,
+            shell=True,
+        )
 
         click.echo("Create script entries ...")
 
+        scripts = set(after_scripts_snapshot) - set(before_scripts_snapshot)
         self.create_script_entries(work_dir, scripts)
 
         click.echo("Packing distribution ...")
@@ -259,3 +269,4 @@ class PyPuck(object):
         self.pack(work_dir, dist_dir)
 
         click.echo("Done!")
+
