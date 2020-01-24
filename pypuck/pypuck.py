@@ -254,7 +254,7 @@ call "%~dp0scripts/env.bat"
 
         # Use echo to skip the "PAUSE" in that script!
         run(
-            'cmd /C echo | call "%s\scripts\make_winpython_movable.bat"'
+            'cmd /C echo | call "%s\\scripts\\make_winpython_movable.bat"'
             % work_dir,
             shell=True,
         )
