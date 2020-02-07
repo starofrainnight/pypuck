@@ -11,7 +11,7 @@ import requests
 import hashlib
 import shutil
 import pathlib
-from subprocess import run
+from subprocess import run, PIPE
 from requests import Timeout, ConnectTimeout, ConnectionError
 from .exceptions import DownloadError, FileVerificationError
 
@@ -185,8 +185,10 @@ class PyPuck(object):
     def create_script_entries(self, work_dir, scripts):
         scripts = list(scripts)
         script_content = """@echo off
+setlocal
 call "%~dp0scripts/env.bat"
 "%~dp0{}" %*
+endlocal
 """
 
         for script in scripts:
@@ -217,6 +219,8 @@ call "%~dp0scripts/env.bat"
 
         click.echo("Silent install winpython to build cache ...")
 
+        click.echo("work_dir: %s" % work_dir)
+
         # Python 3.6.8.0 setup file was build by INNO setup, so we use it's
         # silent install parameters to install the winpyton stuffs to our
         # build directory.
@@ -229,20 +233,48 @@ call "%~dp0scripts/env.bat"
         cmd = cmd % (file_path, work_dir)
         p = run(cmd, shell=True)
 
-        click.echo("Get snapshot of scripts...")
+        click.echo("Install requirements ...")
 
-        before_scripts_snapshot = self.get_scripts_snapshot(work_dir)
-
-        click.echo("Run setup.py ...")
-
-        # Install the setup.py on local directory
+        # First install the setup.py on local directory (just for the requirements ...)
         p = run(
-            'cmd /C call "%s\\scripts\\env.bat" & python setup.py install'
+            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py install"'
             % work_dir,
             shell=True,
         )
 
         click.echo("Setup result: %s" % p.returncode)
+
+        p = run(
+            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py --name"'
+            % work_dir,
+            shell=True,
+            stdout=PIPE,
+        )
+
+        package_name = p.stdout.decode().strip()
+
+        click.echo("Got package name : %s" % package_name)
+
+        click.echo("Uninstall package %s ..." % package_name)
+
+        # Uninstall the package specificly, then reinstall it for get it's scripts snapshot
+        p = run(
+            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip uninstall -y %s"'
+            % (work_dir, package_name),
+            shell=True,
+        )
+
+        click.echo("Get snapshot of scripts...")
+
+        before_scripts_snapshot = self.get_scripts_snapshot(work_dir)
+
+        click.echo("Install again (capture generated scripts)...")
+
+        p = run(
+            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py install"'
+            % work_dir,
+            shell=True,
+        )
 
         after_scripts_snapshot = self.get_scripts_snapshot(work_dir)
 
@@ -259,9 +291,12 @@ call "%~dp0scripts/env.bat"
             shell=True,
         )
 
+        scripts = set(after_scripts_snapshot) - set(before_scripts_snapshot)
+
+        click.echo("Captured scripts: %s" % scripts)
+
         click.echo("Create script entries ...")
 
-        scripts = set(after_scripts_snapshot) - set(before_scripts_snapshot)
         self.create_script_entries(work_dir, scripts)
 
         click.echo("Packing distribution ...")
