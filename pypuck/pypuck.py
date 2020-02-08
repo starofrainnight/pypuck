@@ -235,7 +235,8 @@ endlocal
 
         click.echo("Install requirements ...")
 
-        # First install the setup.py on local directory (just for the requirements ...)
+        # First install the setup.py on local directory (just for the
+        # requirements ...)
         p = run(
             'cmd /C "call "%s\\scripts\\env.bat" & python setup.py install"'
             % work_dir,
@@ -257,10 +258,12 @@ endlocal
 
         click.echo("Uninstall package %s ..." % package_name)
 
-        # Uninstall the package specificly, then reinstall it for get it's scripts snapshot
+        # Uninstall the package specificly, then reinstall it for get it's
+        # scripts snapshot
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip uninstall -y %s"'
-            % (work_dir, package_name),
+            'cmd /C "'
+            'call "%s\\scripts\\env.bat" & python -m pip uninstall -y %s'
+            '"' % (work_dir, package_name),
             shell=True,
         )
 
