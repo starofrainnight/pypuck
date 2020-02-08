@@ -21,6 +21,8 @@ Certainly, we have our rules, only those python application that wrote  in stand
 
 If a python application could be installed by standard command:
 
+::
+
     python setup.py install
 
 and the `entry_points` has been correct defined in `setup.py`, this python application could be packaged.
@@ -38,12 +40,21 @@ Features
 Usage
 -------
 
-TBD.
+Look into the 'helloworld' example under `examples` directory which demonstrated how to structure your application.
+
+Then go to your project root, enter the command to build your first application:
+
+::
+
+    pypuck build
+
+After successed, the application will be packaged under `build/dist` directory.
 
 Known Issues
 -------------
 
-* Only works with windows
+* Only works in windows system
+* You must invoke the pypuck under Administrator Permission
 
 Credits
 ---------
