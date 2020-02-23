@@ -54,7 +54,7 @@ Then go to your project root, enter the command to build your first application:
 
     pypuck build
 
-After successed, the application will be packaged under `build/dist` directory.
+After successed, the application will be packaged under `./dist` directory.
 
 Known Issues
 -------------
