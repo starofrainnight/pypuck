@@ -37,6 +37,13 @@ Features
 * Always use latest stable python
 * No special codes needs to changed just like you works with other packager applications (just like the `__main__` problems that works with cxfreeze)
 
+
+Preparation
+------------
+
+1. 7-zip must be installed and the executable path must be placed into PATH environment variable
+1. Run the pypuck with Administrator permission
+
 Usage
 -------
 
@@ -53,7 +60,7 @@ After successed, the application will be packaged under `build/dist` directory.
 Known Issues
 -------------
 
-* Only works in windows system
+* Only works under windows system
 * You must invoke the pypuck under Administrator Permission
 
 Credits
