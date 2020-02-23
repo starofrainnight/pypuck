@@ -106,3 +106,9 @@ python_boilerplate/
 
 # pytest
 .pytest_cache
+
+# SVM
+.git
+.svn
+.hg
+
