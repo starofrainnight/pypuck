@@ -41,8 +41,7 @@ Features
 Preparation
 ------------
 
-1. 7-zip must be installed and the executable path must be placed into PATH environment variable
-1. Run the pypuck with Administrator permission
+7-zip must be installed and the executable path must be placed into PATH environment variable
 
 Usage
 -------

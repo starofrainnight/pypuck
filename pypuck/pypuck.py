@@ -128,17 +128,19 @@ class PyPuck(object):
 
         if self.is_64bits_system():
             winpython_cpu = "64"
-            sha256_value = "acfc2933071b3514de206485770512957f3119630585225571215ea5c0ba53b1"  # noqa
+            sha256_value = "8a821f16657e673c49de0f70fbe610dff3a0da4117bec33103700a15807380ee"  # noqa
         else:
             winpython_cpu = "32"
-            sha256_value = "c20024700be85f01f8607f10e40cb696a330039f2564c831ace43442506530cf"  # noqa
+            sha256_value = "2982466f05e8bde7f850925f533a1fa529b84fe000f0cd0642cd4375f8a795c4"  # noqa
 
-        # Latest winpython won't so mature for all packages (They )
+        # Latest winpython won't so mature for all packages
         url = (
-            "https://github.com/winpython/winpython/releases/download/1.11.20190223/Winpython%s-3.6.8.0Zero.exe"  # noqa
+            "https://bintray.com/starofrainnight/binpkgs/download_file?file_path=WinPython%s-3.6.8.0Zero-7z.exe"  # noqa
             % winpython_cpu
         )
-        file_path = os.path.join(cache_dir, os.path.basename(url))
+        file_name = os.path.basename(url)
+        file_name = file_name[file_name.index("=")+1:]
+        file_path = os.path.join(cache_dir, file_name)
 
         if (
             os.path.exists(file_path)
@@ -220,15 +222,9 @@ endlocal
 
         click.echo("work_dir: %s" % work_dir)
 
-        # Python 3.6.8.0 setup file was build by INNO setup, so we use it's
-        # silent install parameters to install the winpyton stuffs to our
-        # build directory.
-        cmd = "start /wait %s"
-        cmd += " /VERYSILENT"
-        cmd += " /NORESTART"
-        cmd += " /CLOSEAPPLICATIONS"
-        cmd += " /RESTARTAPPLICATIONS"
-        cmd += ' /DIR="%s"'
+        # Downloaded python 3.6.8.0 package is an 7zip package, we just extract
+        # it to target directory.
+        cmd = '7z x %s -y -o"%s"'
         cmd = cmd % (file_path, work_dir)
         p = run(cmd, shell=True)
 
