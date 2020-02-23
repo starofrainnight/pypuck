@@ -276,10 +276,6 @@ endlocal
 
         after_scripts_snapshot = self.get_scripts_snapshot(work_dir)
 
-        click.echo("Remove unused binaries...")
-
-        self.tidy_winpython(work_dir)
-
         click.echo("Ensure python movable...")
 
         # Use echo to skip the "PAUSE" in that script!
@@ -288,6 +284,10 @@ endlocal
             % work_dir,
             shell=True,
         )
+
+        click.echo("Remove unused binaries...")
+
+        self.tidy_winpython(work_dir)
 
         scripts = set(after_scripts_snapshot) - set(before_scripts_snapshot)
 
