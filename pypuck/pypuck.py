@@ -101,6 +101,7 @@ class PyPuck(object):
             "python-*/include",
             "python-*/libs",
             "python-*/Doc",
+            "python-*/*.txt",
             "**/__pycache__",
         ]
 
