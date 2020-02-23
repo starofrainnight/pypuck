@@ -119,19 +119,24 @@ class PyPuck(object):
                 elif os.path.isdir(apath):
                     shutil.rmtree(apath, ignore_errors=True)
 
+    def _cpu_bits_text(self):
+        if self.is_64bits_system():
+            return "64"
+        else:
+            return "32"
+
+    def _cpu_arch(self):
+        return "x" + self._cpu_bits_text()
+
     def download_winpython_core(self):
-        # Fixed `~` will be expanded as local-dir/settings
-        cache_dir = "%s%s/.pypuck/cache" % (
-            os.environ["HOMEDRIVE"],
-            os.environ["HOMEPATH"],
-        )
+        # `~` will be expanded as winpython-dir/settings
+        cache_dir = os.path.expanduser("~/.pypuck/cache")
         os.makedirs(cache_dir, exist_ok=True)
 
+        winpython_cpu = self._cpu_bits_text()
         if self.is_64bits_system():
-            winpython_cpu = "64"
             sha256_value = "8a821f16657e673c49de0f70fbe610dff3a0da4117bec33103700a15807380ee"  # noqa
         else:
-            winpython_cpu = "32"
             sha256_value = "2982466f05e8bde7f850925f533a1fa529b84fe000f0cd0642cd4375f8a795c4"  # noqa
 
         # Latest winpython won't so mature for all packages
@@ -140,7 +145,7 @@ class PyPuck(object):
             % winpython_cpu
         )
         file_name = os.path.basename(url)
-        file_name = file_name[file_name.index("=")+1:]
+        file_name = file_name[file_name.index("=") + 1 :]
         file_path = os.path.join(cache_dir, file_name)
 
         if (
@@ -169,9 +174,7 @@ class PyPuck(object):
             "Failed to verify downloaded winpython binary from %s" % url
         )
 
-    def pack(self, work_dir, to_dir):
-        archive_file = os.path.join(to_dir, "dist.zip")
-
+    def pack(self, work_dir, archive_file):
         # Remove the old archive first, otherwise 7z will append files
         # into the old archive!
         try:
@@ -209,13 +212,19 @@ endlocal
 
         build_dir = "./build"
         work_dir = os.path.join(build_dir, "work")
-        dist_dir = os.path.join(build_dir, "dist")
+        dist_dir = os.path.join(os.curdir, "dist")
 
         work_dir = os.path.realpath(work_dir).replace("/", os.sep)
         dist_dir = os.path.realpath(dist_dir).replace("/", os.sep)
 
         # Rebuild build dir
         shutil.rmtree(build_dir, ignore_errors=True)
+
+        # FIXME: (On Windows) Seems if we call other function on the same
+        # directory after rmtree(), it will failed to permisson problems. We
+        # have to wait for a while, after that function before doing any action.
+        time.sleep(3)
+
         os.makedirs(work_dir, exist_ok=True)
         os.makedirs(dist_dir, exist_ok=True)
 
@@ -229,12 +238,21 @@ endlocal
         cmd = cmd % (file_path, work_dir)
         p = run(cmd, shell=True)
 
+        click.echo("Clone pip settings of this python environment ...")
+
+        my_pip_dir = os.path.expanduser("~/pip")
+        working_pip_dir = os.path.join(work_dir, "settings", "pip")
+        if os.path.exists(my_pip_dir):
+            shutil.copytree(my_pip_dir, working_pip_dir)
+
         click.echo("Install requirements ...")
 
         # First install the setup.py on local directory (just for the
         # requirements ...)
+        #
+        # pip have better depenences resolver than just install by setup.py
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py install"'
+            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip install ."'
             % work_dir,
             shell=True,
         )
@@ -252,6 +270,16 @@ endlocal
 
         click.echo("Got package name : %s" % package_name)
 
+        p = run(
+            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py --version"'
+            % work_dir,
+            shell=True,
+            stdout=PIPE,
+        )
+
+        package_version = p.stdout.decode().strip()
+        click.echo("Got package version : %s" % package_version)
+
         click.echo("Uninstall package %s ..." % package_name)
 
         # Uninstall the package specificly, then reinstall it for get it's
@@ -263,6 +291,10 @@ endlocal
             shell=True,
         )
 
+        # FIXME: (On Windows) The files not be deleted after uninstall, we
+        # should wait for a while
+        time.sleep(3)
+
         click.echo("Get snapshot of scripts...")
 
         before_scripts_snapshot = self.get_scripts_snapshot(work_dir)
@@ -270,7 +302,7 @@ endlocal
         click.echo("Install again (capture generated scripts)...")
 
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py install"'
+            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip install ."'
             % work_dir,
             shell=True,
         )
@@ -300,6 +332,26 @@ endlocal
 
         click.echo("Packing distribution ...")
 
-        self.pack(work_dir, dist_dir)
+        click.echo("Remove pip settings of working python environment ...")
 
+        shutil.rmtree(working_pip_dir, ignore_errors=True)
+
+        dist_file_path = os.path.join(
+            dist_dir,
+            "%s-%s-%s-bin.zip"
+            % (package_name, package_version, self._cpu_arch()),
+        )
+
+        # Remove the dist file if already exists
+        try:
+            os.remove(dist_file_path)
+        except OSError:
+            pass
+
+        # FIXME: (On Windows) Wait for a while, for those dir/file remove  operations ...
+        time.sleep(3)
+
+        self.pack(work_dir, dist_file_path)
+
+        click.echo("Generated package : %s !" % dist_file_path)
         click.echo("Done!")
