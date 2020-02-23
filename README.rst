@@ -60,7 +60,6 @@ Known Issues
 -------------
 
 * Only works under windows system
-* You must invoke the pypuck under Administrator Permission
 
 Credits
 ---------
