@@ -25,7 +25,7 @@ tests_requires = [
 
 setup(
     name="pypuck",
-    version="0.0.2",
+    version="0.0.3",
     description="A program use for compile python package to portable executable",
     long_description=long_description,
     author="Hong-She Liang",
