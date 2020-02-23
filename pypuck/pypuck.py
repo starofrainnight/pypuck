@@ -145,7 +145,8 @@ class PyPuck(object):
             % winpython_cpu
         )
         file_name = os.path.basename(url)
-        file_name = file_name[file_name.index("=") + 1 :]
+        after_equal_index = file_name.index("=") + 1
+        file_name = file_name[after_equal_index:]
         file_path = os.path.join(cache_dir, file_name)
 
         if (
@@ -222,7 +223,8 @@ endlocal
 
         # FIXME: (On Windows) Seems if we call other function on the same
         # directory after rmtree(), it will failed to permisson problems. We
-        # have to wait for a while, after that function before doing any action.
+        # have to wait for a while, after that function before doing any
+        # action.
         time.sleep(3)
 
         os.makedirs(work_dir, exist_ok=True)
@@ -348,7 +350,8 @@ endlocal
         except OSError:
             pass
 
-        # FIXME: (On Windows) Wait for a while, for those dir/file remove  operations ...
+        # FIXME: (On Windows) Wait for a while, for those dir/file remove
+        # operations ...
         time.sleep(3)
 
         self.pack(work_dir, dist_file_path)
