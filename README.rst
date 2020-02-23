@@ -11,7 +11,7 @@ pypuck
 .. image:: https://ci.appveyor.com/api/projects/status/github/starofrainnight/pypuck?svg=true
     :target: https://ci.appveyor.com/project/starofrainnight/pypuck
 
-A script for compile python program to portable executable (for windows only currently)
+A program use for compile python package to portable executable (for windows only currently)
 
 Just like cxfreeze, pyinstaller or py2exe.
 
