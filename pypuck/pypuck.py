@@ -138,7 +138,6 @@ class PyPuck(object):
             "https://github.com/winpython/winpython/releases/download/1.11.20190223/Winpython%s-3.6.8.0Zero.exe"  # noqa
             % winpython_cpu
         )
-        # proxy = "%s://%s:%s" % ("socks5", "127.0.0.1", "11086")
         file_path = os.path.join(cache_dir, os.path.basename(url))
 
         if (
