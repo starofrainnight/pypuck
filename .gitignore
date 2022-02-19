@@ -112,3 +112,6 @@ python_boilerplate/
 .svn
 .hg
 
+# Temporary files
+*.old
+*.bak
