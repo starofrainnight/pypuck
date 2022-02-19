@@ -119,34 +119,39 @@ class PyPuck(object):
                 elif os.path.isdir(apath):
                     shutil.rmtree(apath, ignore_errors=True)
 
-    def _cpu_bits_text(self):
-        if self.is_64bits_system():
-            return "64"
+    def _cpu_bits_text(self, bits):
+        if bits is None:
+            if self.is_64bits_system():
+                return "64"
+            else:
+                return "32"
         else:
-            return "32"
+            return str(bits)
 
-    def _cpu_arch(self):
-        return "x" + self._cpu_bits_text()
+    def _cpu_arch(self, cpu_bits=None):
+        return "x" + self._cpu_bits_text(cpu_bits)
 
-    def download_winpython_core(self):
+    def download_winpython_core(self, cpu_bits=None):
         # `~` will be expanded as winpython-dir/settings
         cache_dir = os.path.expanduser("~/.pypuck/cache")
         os.makedirs(cache_dir, exist_ok=True)
 
-        winpython_cpu = self._cpu_bits_text()
-        if self.is_64bits_system():
-            sha256_value = "8a821f16657e673c49de0f70fbe610dff3a0da4117bec33103700a15807380ee"  # noqa
+        winpython_cpu = self._cpu_bits_text(cpu_bits)
+        if winpython_cpu == "64":
+            sha256_value = "7e95875b3217429b54939d45d69f87b6f2013a6cbd2e08b52429b466785bdba2"  # noqa
         else:
-            sha256_value = "2982466f05e8bde7f850925f533a1fa529b84fe000f0cd0642cd4375f8a795c4"  # noqa
+            sha256_value = "f63295ee104790e80ca1a7e67274d57f1a22aa33dce5850bd9f3464b709739d6"  # noqa
 
         # Latest winpython won't so mature for all packages
+
         url = (
-            "https://bintray.com/starofrainnight/binpkgs/download_file?file_path=WinPython%s-3.6.8.0Zero-7z.exe"  # noqa
+            "https://github.com/winpython/winpython/releases/download/4.3.20210620/Winpython%s-3.8.10.0dot.exe"  # noqa
             % winpython_cpu
         )
         file_name = os.path.basename(url)
-        after_equal_index = file_name.index("=") + 1
-        file_name = file_name[after_equal_index:]
+        if "=" in file_name:
+            after_equal_index = file_name.index("=") + 1
+            file_name = file_name[after_equal_index:]
         file_path = os.path.join(cache_dir, file_name)
 
         if (
@@ -200,16 +205,15 @@ endlocal
         for script in scripts:
             script_path = pathlib.Path(script)
             target_exe = os.fspath(script_path.relative_to(work_dir))
-            script_content.format(target_exe)
             script_entry = os.path.join(work_dir, script_path.stem + ".bat")
             with open(script_entry, "w") as f:
                 f.write(script_content.format(target_exe))
 
-    def build(self):
+    def build(self, cpu_bits=None):
         if not os.path.exists("setup.py"):
             raise FileNotFoundError("setup.py not found!")
 
-        file_path = self.download_winpython_core()
+        file_path = self.download_winpython_core(cpu_bits)
 
         build_dir = "./build"
         work_dir = os.path.join(build_dir, "work")
@@ -242,6 +246,11 @@ endlocal
 
         click.echo("Clone pip settings of this python environment ...")
 
+        # Change the work dir if it have more one level folder
+        inner_dirs = glob.glob(os.path.join(work_dir, "WPy*"))
+        if len(inner_dirs) > 0:
+            work_dir = os.path.join(work_dir, inner_dirs[0])
+
         my_pip_dir = os.path.expanduser("~/pip")
         working_pip_dir = os.path.join(work_dir, "settings", "pip")
         if os.path.exists(my_pip_dir):
@@ -254,7 +263,7 @@ endlocal
         #
         # pip have better depenences resolver than just install by setup.py
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip install ."'
+            'cmd /C ""%s\\scripts\\env.bat" & python -m pip install ."'
             % work_dir,
             shell=True,
         )
@@ -262,7 +271,7 @@ endlocal
         click.echo("Setup result: %s" % p.returncode)
 
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py --name"'
+            'cmd /C ""%s\\scripts\\env.bat" & python setup.py --name"'
             % work_dir,
             shell=True,
             stdout=PIPE,
@@ -273,7 +282,7 @@ endlocal
         click.echo("Got package name : %s" % package_name)
 
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python setup.py --version"'
+            'cmd /C ""%s\\scripts\\env.bat" & python setup.py --version"'
             % work_dir,
             shell=True,
             stdout=PIPE,
@@ -288,7 +297,7 @@ endlocal
         # scripts snapshot
         p = run(
             'cmd /C "'
-            'call "%s\\scripts\\env.bat" & python -m pip uninstall -y %s'
+            '"%s\\scripts\\env.bat" & python -m pip uninstall -y %s'
             '"' % (work_dir, package_name),
             shell=True,
         )
@@ -304,7 +313,7 @@ endlocal
         click.echo("Install again (capture generated scripts)...")
 
         p = run(
-            'cmd /C "call "%s\\scripts\\env.bat" & python -m pip install ."'
+            'cmd /C ""%s\\scripts\\env.bat" & python -m pip install ."'
             % work_dir,
             shell=True,
         )
@@ -341,7 +350,7 @@ endlocal
         dist_file_path = os.path.join(
             dist_dir,
             "%s-%s-%s-bin.zip"
-            % (package_name, package_version, self._cpu_arch()),
+            % (package_name, package_version, self._cpu_arch(cpu_bits)),
         )
 
         # Remove the dist file if already exists
