@@ -103,6 +103,7 @@ class PyPuck(object):
             "python-*/Doc",
             "python-*/*.txt",
             "**/__pycache__",
+            "**/*.chm",
         ]
 
         for pattern in patterns:
