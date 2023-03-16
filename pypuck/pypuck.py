@@ -138,14 +138,14 @@ class PyPuck(object):
 
         winpython_cpu = self._cpu_bits_text(cpu_bits)
         if winpython_cpu == "64":
-            sha256_value = "7e95875b3217429b54939d45d69f87b6f2013a6cbd2e08b52429b466785bdba2"  # noqa
+            sha256_value = "7c61728acb13954ba862348116676c30617aec8fc45536fa882c9b0dd9278eda"  # noqa
         else:
-            sha256_value = "f63295ee104790e80ca1a7e67274d57f1a22aa33dce5850bd9f3464b709739d6"  # noqa
+            sha256_value = "49738ff219cd23cd1e96afaf2a6b8eabdcdb04575167dd46e1f132e946821326"  # noqa
 
         # Latest winpython won't so mature for all packages
 
         url = (
-            "https://github.com/winpython/winpython/releases/download/4.3.20210620/Winpython%s-3.8.10.0dot.exe"  # noqa
+            "https://github.com/winpython/winpython/releases/download/5.3.20221233/Winpython%s-3.10.9.0dot.exe"  # noqa
             % winpython_cpu
         )
         file_name = os.path.basename(url)
