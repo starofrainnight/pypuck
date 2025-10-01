@@ -54,15 +54,15 @@ install:
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
 
   # Check that we have the expected version and architecture for Python
-  - "python --version"
-  - 'python -c "import struct; print(struct.calcsize(''P'') * 8)"'
+  - "python3 --version"
+  - 'python3 -c "import struct; print(struct.calcsize(''P'') * 8)"'
 
   # Upgrade to the latest version of pip to avoid it displaying warnings
   # about it being out of date.
-  - "python -m pip install -U pip"
-  - "python -m pip install -U setuptools"
+  - "python3 -m pip install -U pip"
+  - "python3 -m pip install -U setuptools"
   # Prepare test utility
-  - "python -m pip install click"
+  - "python3 -m pip install click"
 
 build: off
 
@@ -70,11 +70,11 @@ test_script:
   # Run the project tests
   # Syntax check
   # - ps: "if (($env:PYTHON_VERSION -eq '3.6.x') -and ($env:PLATFORM -eq 'x64')) { python ./ci/executor.py test -e mypy -e flake8 }"
-  - "python ./ci/executor.py test"
+  - "python3 ./ci/executor.py test"
 
 after_test:
   # If tests are successful, create binary packages for the project.
-  - "python ./ci/executor.py pack"
+  - "python3 ./ci/executor.py pack"
   # Only deploy when python 3.6.x and arch 32 on tags
   # - ps: "if (($env:APPVEYOR_REPO_TAG -eq 'true') -and ($env:PYTHON_VERSION -eq '3.6.x') -and ($env:PLATFORM -eq 'x86')) { pip install twine; twine upload dist\\* }"
   - ps: "ls dist"
